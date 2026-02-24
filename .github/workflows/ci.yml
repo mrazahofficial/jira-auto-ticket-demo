@@ -19,17 +19,16 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install requests python-dotenv
+        run: pip install -r requirements.txt
 
       - name: Run Security Scan
         id: scan
-        # This is your 'problem' step that fails on purpose
-        run: python security_scan.py
+        run: |
+          python security_scan.py
         continue-on-error: true
         
       - name: Create Jira Ticket
-        # Using failure() is more robust for checking if the previous step crashed
-        if: always() && (steps.scan.outcome == 'failure')
+        if: always() && steps.scan.outcome == 'failure'
         run: python create_jira_ticket.py
         env:
           JIRA_URL: ${{ secrets.JIRA_URL }}
