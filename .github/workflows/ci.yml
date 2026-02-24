@@ -22,15 +22,14 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Security Scan
-        id: scan
-        run: |
-          python security_scan.py
+        id: scan  # <--- THIS MUST MATCH THE 'if' BELOW
+        run: python security_scan.py
         continue-on-error: true
         
-      - name: Run Python Script
+      - name: Create Jira Ticket
+        if: always() && steps.scan.outcome == 'failure'
         run: python create_jira_ticket.py
         env:
-        # Mapping the GitHub Secrets to Environment Variables
           JIRA_URL: ${{ secrets.JIRA_URL }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
