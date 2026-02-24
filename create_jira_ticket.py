@@ -40,8 +40,33 @@ if not all(required_vars):
 # ==============================
 
 def create_ticket():
-    # Now this URL construction is much safer!
     url = f"{JIRA_URL}/rest/api/3/issue"
     auth = (EMAIL, API_TOKEN)
-    
-    # ... (the rest of your create_ticket function remains the same)
+    headers = {"Accept": "application/json", "Content-Type": "application/json"}
+
+    payload = {
+        "fields": {
+            "project": {"key": PROJECT_KEY},
+            "summary": "🚨 Security Vulnerability Detected",
+            "description": {
+                "type": "doc", "version": 1, 
+                "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Scan failed."}]}]
+            },
+            "issuetype": {"name": "Task"} # Verify this is 'Task' in your Jira!
+        }
+    }
+
+    print(f"🚀 Attempting to connect to: {url}")
+    try:
+        response = requests.post(url, json=payload, headers=headers, auth=auth)
+        print("Jira Status Code:", response.status_code)
+        
+        if response.status_code == 201:
+            print("✅ Success! Ticket created.")
+        else:
+            # THIS IS THE FIX: Print the exact reason from Jira
+            print("❌ Jira Error Response:", response.text)
+            sys.exit(1)
+    except Exception as e:
+        print(f"❌ Connection Error: {e}")
+        sys.exit(1)
