@@ -19,14 +19,18 @@ jobs:
           python-version: '3.10'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install requests python-dotenv
+          # If you have a requirements.txt, use: pip install -r requirements.txt
 
       - name: Run Security Scan
-        id: scan  # <--- THIS MUST MATCH THE 'if' BELOW
+        id: scan
         run: python security_scan.py
         continue-on-error: true
         
       - name: Create Jira Ticket
+        # always() ensures this runs even if previous steps failed
+        # steps.scan.outcome == 'failure' ensures it ONLY runs if the scan found a bug
         if: always() && steps.scan.outcome == 'failure'
         run: python create_jira_ticket.py
         env:
@@ -34,3 +38,4 @@ jobs:
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_PROJECT: ${{ secrets.JIRA_PROJECT }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
